@@ -11,9 +11,9 @@ class EmployeeNode(DjangoObjectType):
     class Meta:
         model = Employee
         filter_fields = {
-            'name': ['exact', 'icantains'],
-            'join_year': ['exact', 'icantains'],
-            'department__dept_name': ['icantains'],
+            'name': ['exact', 'icontains'],
+            'join_year': ['exact', 'icontains'],
+            'department__dept_name': ['icontains'],
         }
         interfaces = (relay.Node,)
 
@@ -64,18 +64,19 @@ class EmployeeCreateMutation(relay.ClientIDMutation):
         join_year = graphene.Int(required=True)
         department = graphene.ID(required=True)
 
-        employee = graphene.Field(EmployeeNode)
+    employee = graphene.Field(EmployeeNode)
 
-        @login_required
-        def mutate_and_get_payload(root, info, **input):
-            employee = Employee(
-                name=input.get('name'),
-                join_year=input.get('join_year'),
-                department_id=from_global_id(input.get('department'))[1]
-            )
-            employee.save()
+    @login_required
+    def mutate_and_get_payload(root, info, **input):
+        employee = Employee(
+            name=input.get('name'),
+            join_year=input.get('join_year'),
+            department_id=from_global_id(input.get('department'))[1]
+        )
+        employee.save()
 
-            return EmployeeCreateMutation(employee=employee)
+        return EmployeeCreateMutation(employee=employee)
+
 
 
 class EmployeeUpdateMutation(relay.ClientIDMutation):
