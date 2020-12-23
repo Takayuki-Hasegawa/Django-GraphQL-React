@@ -23,23 +23,24 @@ class DepartmentNode(DjangoObjectType):
         model = Department
         filter_fields = {
             'employees': ['exact'],
-            'dept_name': ['exact'],
-        }
+            'dept_name': ['exact']}
         interfaces = (relay.Node,)
 
 
 class DeptCreateMutation(relay.ClientIDMutation):
     class Input:
-        dept_name: graphene.String(required=True)
+        dept_name = graphene.String(required=True)
 
     department = graphene.Field(DepartmentNode)
 
     @login_required
     def mutate_and_get_payload(root, info, **input):
+
         department = Department(
-            dept_name=input.get('dept_name')
+            dept_name=input.get('dept_name'),
         )
         department.save()
+
         return DeptCreateMutation(department=department)
 
 
@@ -51,10 +52,12 @@ class DeptDeleteMutation(relay.ClientIDMutation):
 
     @login_required
     def mutate_and_get_payload(root, info, **input):
+
         department = Department(
             id=from_global_id(input.get('id'))[1]
         )
         department.delete()
+
         return DeptDeleteMutation(department=None)
 
 
@@ -78,7 +81,6 @@ class EmployeeCreateMutation(relay.ClientIDMutation):
         return EmployeeCreateMutation(employee=employee)
 
 
-
 class EmployeeUpdateMutation(relay.ClientIDMutation):
     class Input:
         id = graphene.ID(required=True)
@@ -90,9 +92,9 @@ class EmployeeUpdateMutation(relay.ClientIDMutation):
 
     @login_required
     def mutate_and_get_payload(root, info, **input):
+
         employee = Employee(
             id=from_global_id(input.get('id'))[1]
-
         )
         employee.name = input.get('name')
         employee.join_year = input.get('join_year')
@@ -111,6 +113,7 @@ class EmployeeDeleteMutation(relay.ClientIDMutation):
 
     @login_required
     def mutate_and_get_payload(root, info, **input):
+
         employee = Employee(
             id=from_global_id(input.get('id'))[1]
         )
@@ -129,7 +132,7 @@ class Mutation(graphene.AbstractType):
 
 class Query(graphene.ObjectType):
     employee = graphene.Field(EmployeeNode, id=graphene.NonNull(graphene.ID))
-    all_employee = DjangoFilterConnectionField(EmployeeNode)
+    all_employees = DjangoFilterConnectionField(EmployeeNode)
     all_departments = DjangoFilterConnectionField(DepartmentNode)
 
     @login_required
@@ -139,9 +142,9 @@ class Query(graphene.ObjectType):
             return Employee.objects.get(id=from_global_id(id)[1])
 
     @login_required
-    def resolve_employee(self, info, **kwargs):
+    def resolve_all_employees(self, info, **kwargs):
         return Employee.objects.all()
 
     @login_required
-    def resolve_departments(self, info, **kwargs):
+    def resolve_all_departments(self, info, **kwargs):
         return Department.objects.all()
